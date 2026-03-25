@@ -1,64 +1,80 @@
 import numpy as np
 from scipy.signal import convolve2d
 from sklearn.cluster import DBSCAN
+from typing import List, Dict, Any
 
-# Class definition
-class MatchedFilterDetector:
-    def __init__(self, sigma_psf, kernel_ratio=4.0):
-        """
-        Args:
-            sigma_psf (float): The PSF sigma in pixels.
-            kernel_ratio (float): How large the kernel should be relative to sigma (radius).
-        """
-        self.sigma_psf = sigma_psf
-        self.kernel = self._create_kernel(sigma_psf, kernel_ratio)
-        self.kernel_norm_factor = np.sqrt(np.sum(self.kernel**2))
+def create_psf_kernel(sigma_psf: float) -> np.ndarray:
+    """
+    Generates a normalized 2D Gaussian kernel for matched filtering.
+    """
+    kernel_rad = int(3 * sigma_psf)
+    y_k, x_k = np.mgrid[-kernel_rad:kernel_rad+1, -kernel_rad:kernel_rad+1]
+    psf_kernel = np.exp(-(x_k**2 + y_k**2) / (2 * sigma_psf**2))
+    psf_kernel /= np.sum(psf_kernel)
+    
+    return psf_kernel
 
-    def _create_kernel(self, sigma, ratio):
-        r = int(ratio * sigma)
-        y, x = np.mgrid[-r:r+1, -r:r+1]
-        kernel = np.exp(-(x**2 + y**2) / (2 * sigma**2))
-        return kernel / np.sum(kernel)
-
-    def detect(self, subtracted_image, pixel_noise, threshold_factor=4.0):
-        """
-        Runs matched filtering on a pre-subtracted image.
-        Returns list of {'x': float, 'y': float}
-        """
-        # 1. Convolution (Matched Filtering) directly on the subtracted image
-        score_map = convolve2d(subtracted_image, self.kernel, mode='same')
-        
-        # 2. Calculate Threshold
-        score_noise = pixel_noise * self.kernel_norm_factor
-        threshold = threshold_factor * score_noise
-        
-        # 3. Find Bright Pixels
-        bright_indices = np.argwhere(score_map > threshold)
-        
-        if len(bright_indices) == 0:
-            return []
-
-        # 4. Cluster (DBSCAN)
-        clustering = DBSCAN(eps=3.0, min_samples=1).fit(bright_indices)
+def detect_sources(
+    img_clean: np.ndarray, 
+    psf_kernel: np.ndarray, 
+    sigma_psf: float, 
+    threshold_factor: float, 
+    frame_idx: int, 
+    filename: str
+) -> List[Dict[str, Any]]:
+    """
+    Applies a matched filter to a cleaned image, calculates robust noise statistics, 
+    and uses DBSCAN to cluster and centroid detections.
+    """
+    # Matched Filter
+    score_map = convolve2d(img_clean, psf_kernel, mode='same')
+    
+    # Robust Thresholding (MAD)
+    median_score = np.median(score_map)
+    robust_sigma = 1.4826 * np.median(np.abs(score_map - median_score))
+    if robust_sigma == 0: robust_sigma = 1e-6 
+    
+    threshold = threshold_factor * robust_sigma
+    bright_indices = np.argwhere(score_map > threshold)
+    
+    frame_detections = []
+    
+    # Clustering & Centroiding
+    if len(bright_indices) > 0:
+        clustering = DBSCAN(eps=3.0, min_samples=2).fit(bright_indices)
         labels = clustering.labels_
-        unique_labels = set(labels)
-        if -1 in unique_labels: unique_labels.remove(-1)
-
-        detections = []
+        unique_labels = set(labels) - {-1} 
+        
         for label in unique_labels:
-            mask = (labels == label)
-            cluster_coords = bright_indices[mask]
-            ys = cluster_coords[:, 0]
-            xs = cluster_coords[:, 1]
+            cluster_mask = (labels == label)
+            points = bright_indices[cluster_mask]
+            ys, xs = points[:, 0], points[:, 1]
             
-            # Weighted Centroid using Score Map values
-            weights = score_map[ys, xs]
-            total_w = np.sum(weights)
+            cluster_scores = score_map[ys, xs]
+            total_score = np.sum(cluster_scores)
             
-            if total_w > 0:
-                y_c = np.sum(ys * weights) / total_w
-                x_c = np.sum(xs * weights) / total_w
-                detections.append({'x': x_c, 'y': y_c})
+            if total_score > 0:
+                # Intensity-weighted average
+                y_c = np.sum(ys * cluster_scores) / total_score
+                x_c = np.sum(xs * cluster_scores) / total_score
                 
-        return detections
-
+                peak_val = np.max(cluster_scores)
+                snr = peak_val / robust_sigma
+                
+                # Variance calculation (Cramer-Rao Lower Bound approx)
+                pos_variance = (sigma_psf / snr)**2 if snr > 0 else 0.0
+                
+                frame_detections.append({
+                    'Frame_Idx': frame_idx,
+                    'Filename': filename,
+                    'Centroid_X': x_c,
+                    'Centroid_Y': y_c,
+                    'Cov_XX': pos_variance,
+                    'Cov_YY': pos_variance,
+                    'Cov_XY': 0.0, 
+                    'SNR': snr,
+                    'Peak_Value': peak_val,
+                    'Cluster_Size': len(points)
+                })
+                
+    return frame_detections

@@ -10,7 +10,6 @@ computational cost manageable.
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 
@@ -21,7 +20,7 @@ import numpy as np
 class Hypothesis:
     """A single hypothesis for a track with N-Scan history tracking."""
     
-    hyp_id: int  # Unique ID for tracking lineage
+    hyp_id: int 
     state: np.ndarray
     covariance: np.ndarray
     log_score: float = 0.0
@@ -50,7 +49,7 @@ class Track:
         self.consecutive_misses: int = 0
         self.start_pos = np.asarray(initial_state[0:2], dtype=float)
         
-        self._next_hyp_id = 0 # Track-local counter for hypothesis IDs
+        self._next_hyp_id = 0
 
         # Initialize the root hypothesis
         init_id = self._get_next_id()

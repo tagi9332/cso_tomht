@@ -4,7 +4,7 @@ import os
 
 # Local imports
 from utils.photometrics.calculate_flux_for_snr import calculate_flux_for_snr
-from utils.obj_sim.generate_positions import generate_positions
+from utils.img_sim.generate_positions import generate_positions
 from utils.photometrics.calculate_optical_properties import calculate_optical_properties
 
 # SECTION 2: IMAGE RENDERING 

@@ -17,7 +17,6 @@ def plot_summary_frame(
     vmax: float
 ) -> None:
     """Generates and saves a static plot of the final frame with overlaid truth trajectories."""
-    print("Generating static summary plot...")
     
     # Calculate window size for plotting circles
     sigma_psf, _ = calculate_optical_properties(
@@ -54,7 +53,6 @@ def plot_summary_frame(
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, "simulation_final_frame.png"), dpi=100)
     plt.close(fig) # Always close plots in utilities to free memory
-    print("Saved static plot.")
 
 
 def create_simulation_gif(
@@ -64,7 +62,6 @@ def create_simulation_gif(
     vmax: float
 ) -> None:
     """Generates an animated GIF of the simulated frames."""
-    print("Generating GIF animation...")
 
     fig_anim, ax_anim = plt.subplots(figsize=(8, 8))
     ax_anim.set_title("Simulation Animation")
@@ -80,4 +77,3 @@ def create_simulation_gif(
     ani = animation.ArtistAnimation(fig_anim, ims, interval=100, blit=True, repeat_delay=1000)
     ani.save(os.path.join(output_dir, "simulation_animation.gif"), writer='pillow', fps=10)
     plt.close(fig_anim)
-    print("Saved animation.")

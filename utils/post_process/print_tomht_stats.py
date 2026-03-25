@@ -2,9 +2,10 @@ import pandas as pd
 
 def print_tomht_stats(meas_df: pd.DataFrame, tracked_df: pd.DataFrame):
     """Prints a summary of the TOMHT tracker's performance."""
-    print("\n" + "="*50)
-    print("             TOMHT PERFORMANCE SUMMARY")
-    print("="*50)
+    print("-" * 50)
+    print("TOMHT PERFORMANCE SUMMARY")
+    print("-" * 50)
+
     
     # Basic Counts
     total_frames = meas_df['time'].nunique()

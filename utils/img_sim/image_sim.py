@@ -82,7 +82,6 @@ def run_simulation(config, trajectory_df, output_dir=None):
 
     # Extract unique times to represent frames
     unique_times = sorted(trajectory_df['time'].unique())
-    print(f"Starting simulation: {len(unique_times)} frames, {len(unique_ids)} unique objects.")
 
     ground_truth_records = []
     all_frames_data = []
@@ -124,6 +123,5 @@ def run_simulation(config, trajectory_df, output_dir=None):
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
         df_truth.to_csv(os.path.join(output_dir, "ground_truth.csv"), index=False)
-        print(f"Results saved to {output_dir}")
 
     return all_frames_data, df_truth

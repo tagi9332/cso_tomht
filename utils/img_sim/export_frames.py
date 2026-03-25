@@ -10,7 +10,6 @@ def export_frames(
     vmax: float
 ) -> None:
     """Exports raw simulation frames to FITS and scaled PNG formats."""
-    print("Exporting individual frames to FITS and PNG...")
     
     fits_dir = os.path.join(output_dir, "fits")
     png_dir = os.path.join(output_dir, "png")
@@ -27,4 +26,3 @@ def export_frames(
         png_filename = os.path.join(png_dir, f"frame_{i:04d}.png")
         plt.imsave(png_filename, frame, cmap='gray', vmin=vmin, vmax=vmax)
 
-    print(f"Exported {len(frames)} frames.")

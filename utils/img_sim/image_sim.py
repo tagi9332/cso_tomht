@@ -4,10 +4,7 @@ import os
 
 # Local imports
 from utils.photometrics.calculate_flux_for_snr import calculate_flux_for_snr
-from utils.img_sim.generate_positions import generate_positions
 from utils.photometrics.calculate_optical_properties import calculate_optical_properties
-
-# SECTION 2: IMAGE RENDERING 
 
 def add_gaussian_source(image, x, y, flux, sigma, roi_sigma_mult=5):
     """
@@ -48,8 +45,6 @@ def apply_noise(clean_image, read_noise_std):
     read_noise = np.random.normal(0, read_noise_std, clean_image.shape)
     
     return image_with_shot + read_noise
-
-#  SECTION 3: MAIN SIMULATION CONTROLLER 
 
 def run_simulation(config, trajectory_df, output_dir=None):
     """

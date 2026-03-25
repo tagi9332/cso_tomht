@@ -15,7 +15,7 @@ def _load_jsonx(filepath: str) -> Dict[str, Any]:
 
 @dataclass
 class TrackerConfig:
-    """Strongly-typed data container for TOMHT parameters."""
+    """Data container for TOMHT parameters."""
     dt: float
     
     # Kalman Filter

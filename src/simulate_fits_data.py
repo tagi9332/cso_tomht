@@ -12,7 +12,7 @@ def simulate_fits_data(trajectory_csv: str):
     """
     print(f"\nLoading trajectory from: {trajectory_csv}")
     
-    # 1. CONFIGURATION
+    # Config
     sim_config = {
         'f_len': 4.0,
         'D': 0.5,
@@ -24,15 +24,15 @@ def simulate_fits_data(trajectory_csv: str):
         'snr_targets': [10, 5] 
     }
 
-    output_dir = "results"
+    output_dir = "results/simulated_data"
     vmin_limit = sim_config['background_mean'] - 3 * sim_config['read_noise_std']
     vmax_limit = sim_config['background_mean'] + 500
 
-    # 2. LOAD DATA & RUN SIMULATION
+    # Load data and run simulation
     trajectory_df = pd.read_csv(trajectory_csv)
     frames, truth_df = run_simulation(sim_config, trajectory_df, output_dir=output_dir)
 
-    # 3. EXPORT & VISUALIZE
+    # Export frames and generate visualizations
     print("Exporting frames and generating visualizations...")
     export_frames(frames, output_dir, vmin_limit, vmax_limit)
     plot_summary_frame(frames, truth_df, sim_config, output_dir, vmin_limit, vmax_limit)

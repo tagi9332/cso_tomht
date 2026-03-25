@@ -19,7 +19,7 @@ def plot_longest_tracks(meas_df: pd.DataFrame, tracked_df: pd.DataFrame, output_
             if track_id in top_5_track_ids: 
                 plt.plot(grp['x'], grp['y'], marker='.', markersize=4, linewidth=1.5, label=f'Track {track_id}')
     
-    plt.title("TOMHT Output vs. Raw Detections (Top 5 Tracks)")
+    plt.title("TOMHT Output vs. Raw Detections (Top 5 Longest Tracks)")
     plt.xlabel("X Position (Pixels)")
     plt.ylabel("Y Position (Pixels)")
     
@@ -31,4 +31,4 @@ def plot_longest_tracks(meas_df: pd.DataFrame, tracked_df: pd.DataFrame, output_
     plt.tight_layout()
     plt.savefig(output_path, dpi=150)
     plt.close()
-    print(f"Saved static plot to {output_path}")
+    print(f"Saved track plot to {output_path}")

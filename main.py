@@ -27,15 +27,11 @@ def simulate_data(trajectory_csv: str):
     simulate_fits_data(trajectory_csv)
 
 
-def detect_sources():
+def detect_sources(INPUT_FITS_DIR: str, OUTPUT_CSV_DIR: str, OUTPUT_PLOT_DIR: str):
     """Step 2: Runs background subtraction and matched filtering on the simulated FITS files."""
     print("\n" + "="*40)
     print(" STEP 2: SOURCE DETECTION (MATCHED FILTER)")
     print("="*40)
-    
-    INPUT_FITS_DIR = "results/fits" 
-    OUTPUT_CSV_DIR = "results/pipeline_output"
-    OUTPUT_PLOT_DIR = "results/detection_plots" 
     
     process_fits_directory(
         input_dir=INPUT_FITS_DIR, 
@@ -47,7 +43,7 @@ def detect_sources():
     )
     
 
-def step_3_run_tracker(csv_path: str):
+def run_tracker(csv_path: str):
     """Step 3: Runs the TOMHT Tracker over the detections generated in Step 2."""
     print("\n" + "="*40)
     print(" STEP 3: TOMHT MULTI-TARGET TRACKING")
@@ -102,7 +98,7 @@ def step_3_run_tracker(csv_path: str):
 if __name__ == "__main__":
     # --- PIPELINE CONFIGURATION ---
     TARGET_TRAJECTORY_CSV = r"data\cso_data\Curving_toward.csv"
-    DETECTIONS_CSV_OUTPUT = "results/pipeline_output/master_detections_with_covariance.csv"
+    DETECTIONS_CSV_OUTPUT = "results/detections/master_detections_with_covariance.csv"
 
     # Ensure the master results directory exists
     os.makedirs("results", exist_ok=True)
@@ -110,9 +106,13 @@ if __name__ == "__main__":
     # --- EXECUTE PIPELINE ---
     simulate_data(trajectory_csv=TARGET_TRAJECTORY_CSV)
     
-    detect_sources()
+    detect_sources(
+        INPUT_FITS_DIR="results/simulated_data/fits",
+        OUTPUT_CSV_DIR="results/detections",
+        OUTPUT_PLOT_DIR="results/detection_frames"
+    )
     
-    step_3_run_tracker(csv_path=DETECTIONS_CSV_OUTPUT)
+    run_tracker(csv_path=DETECTIONS_CSV_OUTPUT)
     
     print("\n========================================")
     print(" END-TO-END TOMHT TRACKING COMPLETE!")

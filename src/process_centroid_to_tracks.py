@@ -17,15 +17,17 @@ class TOMHTTracker:
         dt: float = 1.0, 
         gate_distance: float = 30.0,
         max_misses: int = 3,
-        max_hypotheses: int = 5
+        max_hypotheses: int = 5,
+        n_scan_window: int = 5
     ):
-        self.kf = KalmanFilter2D(dt=dt, process_noise_std=5.0, measurement_noise_std=2.0)
+        self.kf = KalmanFilter2D(dt=dt, process_noise_std=0.5, measurement_noise_std=2.0)
         self.assoc = KDTreeAssociation(gate_distance=gate_distance, merge_clusters=True)
         
         self.active_tracks: Dict[int, Track] = {}
         self.next_track_id = 0
         self.max_misses = max_misses
         self.max_hypotheses = max_hypotheses
+        self.n_scan_window = n_scan_window
 
     def step(self, measurements: np.ndarray) -> List[Track]:
         """Process a single frame of measurements."""
@@ -89,7 +91,7 @@ class TOMHTTracker:
                         
                         # Only branch if the measurement is statistically plausible
                         # (A Mahalanobis distance of 3.0 captures ~99% of a 2D Gaussian)
-                        if dist < 5.0: 
+                        if dist < 3.0: 
                             x_upd, P_upd, log_ll = self.kf.update(x_pred, P_pred, z)
                             hyp_updates.append((m_idx, x_upd, P_upd, log_ll))
                             
@@ -99,14 +101,38 @@ class TOMHTTracker:
                 track.expand_hypotheses(predicted_hyps, measurement_updates)
                 track.normalise_scores()
                 
+                # Apply N-Scan Pruning
+                track.apply_n_scan_pruning()
+                
                 # Update track management stats based on the new best hypothesis
                 if track.best_hypothesis.meas_index is None:
                     track.consecutive_misses += 1
                 else:
                     track.consecutive_misses = 0
+        # 4. PRUNE dead and stationary tracks
+        dead_track_ids = []
+        
+        # Thresholds for stationary pruning 
+        # (You can move these to __init__ later if you want them configurable)
+        min_age_to_check = 5     # Wait 5 frames before judging if it's stationary
+        min_distance_px = 1   # Must move at least 10 pixels from its spawn point
+        
+        for t_id, t in self.active_tracks.items():
+            # Condition 1: Track is dead (too many missed detections)
+            if t.consecutive_misses >= self.max_misses:
+                dead_track_ids.append(t_id)
+                continue
+                
+            # Condition 2: Track is stationary (likely a hot pixel or background artifact)
+            if t.age >= min_age_to_check:
+                current_pos = t.best_state[0:2]
+                # Calculate Euclidean distance from start position
+                displacement = np.linalg.norm(current_pos - t.start_pos)
+                
+                if displacement < min_distance_px:
+                    dead_track_ids.append(t_id)
 
-        # 4. PRUNE dead tracks
-        dead_track_ids = [t_id for t_id, t in self.active_tracks.items() if t.consecutive_misses >= self.max_misses]
+        # Delete the marked tracks
         for t_id in dead_track_ids:
             del self.active_tracks[t_id]
             
@@ -119,7 +145,9 @@ class TOMHTTracker:
             track_id=self.next_track_id,
             initial_state=x0,
             initial_covariance=P0,
-            max_hypotheses=self.max_hypotheses
+            max_hypotheses=self.max_hypotheses,
+            miss_log_likelihood=-25.0,
+            n_scan_window=self.n_scan_window
         )
         self.active_tracks[self.next_track_id] = new_track
         self.next_track_id += 1
@@ -132,7 +160,7 @@ def process_pipeline_data(csv_path: str):
     df = df.rename(columns={'Frame_Idx': 'time', 'Centroid_X': 'x', 'Centroid_Y': 'y'})
     time_steps = sorted(df['time'].unique())
     
-    tracker = TOMHTTracker(dt=1.0, gate_distance=15.0, max_misses=3)
+    tracker = TOMHTTracker(dt=1.0, gate_distance=5.0, max_misses=5, n_scan_window=5)
     
     results = []
     for t in time_steps:
@@ -141,19 +169,24 @@ def process_pipeline_data(csv_path: str):
         
         # Step the tracker
         active_tracks = tracker.step(meas_t)
-        
-        # Record the BEST hypothesis for each active track to plot later
+
         for track in active_tracks:
-            # We don't want to record newborn tracks until they've proven themselves (e.g., survived 2 frames)
-            if track.age >= 2: 
+            # Only record if the track is old enough to have an N-Scan history
+            if len(track.best_hypothesis.history_states) >= tracker.n_scan_window: 
+
+                # Grab the state from exactly N frames ago!
+                # Because of N-Scan pruning, ALL surviving hypotheses agree on this state.
+                delayed_state = track.best_hypothesis.history_states[-tracker.n_scan_window]
+                
                 results.append({
-                    'time': t,
+                    'time': t - tracker.n_scan_window,
                     'id': track.track_id,
-                    'x': track.best_state[0],
-                    'y': track.best_state[1],
-                    'vx': track.best_state[2],
-                    'vy': track.best_state[3]
+                    'x': delayed_state[0],
+                    'y': delayed_state[1],
+                    'vx': delayed_state[2],
+                    'vy': delayed_state[3]
                 })
+
                 
     return pd.DataFrame(results)
 
@@ -201,7 +234,7 @@ def print_tomht_stats(meas_df: pd.DataFrame, tracked_df: pd.DataFrame):
 
 # --- 2. Static Plotting ---
 def plot_tomht_static(meas_df: pd.DataFrame, tracked_df: pd.DataFrame, output_path: str):
-    """Plots all raw detections and overlays the tracker's continuous paths."""
+    """Plots all raw detections and overlays the top 5 longest tracker continuous paths."""
     plt.figure(figsize=(12, 8))
     
     # 1. Scatter all raw detections in the background
@@ -209,20 +242,22 @@ def plot_tomht_static(meas_df: pd.DataFrame, tracked_df: pd.DataFrame, output_pa
     
     # 2. Draw the tracks
     if not tracked_df.empty:
-        # Group by track ID and plot lines
+        # Find the 5 "best" tracks (the ones with the most frames/longest history)
+        track_lengths = tracked_df.groupby('id').size()
+        top_5_track_ids = track_lengths.nlargest(5).index
+        
+        # Group by track ID and plot lines only for the top 5
         for track_id, grp in tracked_df.groupby('id'):
-            # Only plot tracks that survived a decent amount of time to reduce clutter
-            if len(grp) >= 3: 
+            if track_id in top_5_track_ids: 
                 plt.plot(grp['x'], grp['y'], marker='.', markersize=4, linewidth=1.5, label=f'Track {track_id}')
     
-    plt.title("TOMHT Output vs. Raw Detections")
+    plt.title("TOMHT Output vs. Raw Detections (Top 5 Tracks)")
     plt.xlabel("X Position (Pixels)")
     plt.ylabel("Y Position (Pixels)")
     
-    # Limit legend to top 15 longest tracks to avoid crowding
+    # Show legend (no need to slice handles anymore since there are max 5 + 1 items)
     if not tracked_df.empty:
-        handles, labels = plt.gca().get_legend_handles_labels()
-        plt.legend(handles[:16], labels[:16], bbox_to_anchor=(1.05, 1), loc='upper left')
+        plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
         
     plt.grid(True, linestyle='--', alpha=0.6)
     plt.tight_layout()

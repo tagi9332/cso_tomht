@@ -208,3 +208,6 @@ __marimo__/
 
 # Local results folder
 results/
+
+# Vscode settings
+.vscode/

@@ -1,3 +1,4 @@
 from utils.post_process.plot_longest_tracks import plot_longest_tracks
 from utils.post_process.animate_tracks import animate_tracks
 from utils.post_process.print_tomht_stats import print_tomht_stats
+from utils.post_process.compute_track_metrics import compute_mota, compute_motp

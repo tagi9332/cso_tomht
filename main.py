@@ -110,7 +110,7 @@ def run_tracker(csv_path: str, verbose: bool = True):
 
 if __name__ == "__main__":
     # --- PIPELINE CONFIGURATION ---
-    TARGET_TRAJECTORY_CSV = r"data\cso_data\Curving_toward.csv"
+    TARGET_TRAJECTORY_CSV = r"data\cso_data\Crossing.csv"
     DETECTIONS_CSV_OUTPUT = "results/detections/master_detections_with_covariance.csv"
 
     # Ensure the master results directory exists
@@ -128,5 +128,5 @@ if __name__ == "__main__":
     run_tracker(csv_path=DETECTIONS_CSV_OUTPUT)
     
     print("\n========================================")
-    print(" END-TO-END TOMHT TRACKING COMPLETE!")
+    print(" END-TO-END TOMHT TRACKING COMPLETE")
     print("========================================")

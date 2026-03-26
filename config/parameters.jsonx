@@ -8,14 +8,14 @@
 
     // --- Kalman Filter (State Estimation) ---
     "kalman_filter": {
-        "process_noise_std": 0.5,
-        "measurement_noise_std": 5.0,
-        "mahalanobis_threshold": 3.0  // Distance to capture ~99% of 2D Gaussian
+        "process_noise_std": 1,
+        "measurement_noise_std": 3.0,
+        "mahalanobis_threshold": 4.0  // Distance to capture ~99% of 2D Gaussian
     },
 
     // --- Association & Clustering (KD-Tree) ---
     "association": {
-        "gate_distance": 5.0,        // Max Euclidean pixel distance for initial clustering
+        "gate_distance": 10.0,        // Max Euclidean pixel distance for initial clustering
         "merge_clusters": true
     },
 

@@ -19,7 +19,8 @@ def process_fits_directory(
     sigma_psf=2.0, 
     threshold_factor=4.0, 
     skip_bg_sub=False,
-    verbose=False
+    verbose=False,
+    generate_gif=False
 ):
     """
     Cleans frames and extracts source detections.
@@ -85,15 +86,16 @@ def process_fits_directory(
         if verbose: print(f"[✓] Saved {len(df)} detections to CSV.")
     
     if saved_plot_paths:
-        gif_path = os.path.join(output_plot_dir, "detections_animation.gif")
-        if verbose: print(f"[*] Building animation...")
-        
-        frames = [Image.open(p) for p in saved_plot_paths]
-        frames[0].save(
-            gif_path, format='GIF', append_images=frames[1:],
-            save_all=True, duration=200, loop=0 
-        )
-        if verbose: print(f"[✓] GIF saved to {gif_path}")
+        if generate_gif:
+            gif_path = os.path.join(output_plot_dir, "detections_animation.gif")
+            if verbose: print(f"[*] Building animation...")
+            
+            frames = [Image.open(p) for p in saved_plot_paths]
+            frames[0].save(
+                gif_path, format='GIF', append_images=frames[1:],
+                save_all=True, duration=200, loop=0 
+            )
+            if verbose: print(f"[✓] GIF saved to {gif_path}")
 
 if __name__ == "__main__":
     process_fits_directory(

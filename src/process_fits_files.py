@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 from astropy.io import fits
 from PIL import Image
+import json
+import re
 
 # Local Utility Imports
 from utils.background_subtraction.levesque_bkgnd_subtractor import levesque_process
@@ -15,7 +17,7 @@ def process_fits_directory(
     output_csv_dir, 
     output_plot_dir, 
     sigma_psf=2.0, 
-    threshold_factor=5.0, 
+    threshold_factor=4.0, 
     skip_bg_sub=False,
     verbose=False
 ):

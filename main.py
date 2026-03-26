@@ -32,13 +32,14 @@ def detect_sources(INPUT_FITS_DIR: str, OUTPUT_CSV_DIR: str, OUTPUT_PLOT_DIR: st
     print("\n" + "="*40)
     print(" STEP 2: SOURCE DETECTION (MATCHED FILTER)")
     print("="*40)
+
     
     process_fits_directory(
         input_dir=INPUT_FITS_DIR, 
         output_csv_dir=OUTPUT_CSV_DIR, 
         output_plot_dir=OUTPUT_PLOT_DIR,
         sigma_psf=2.0, 
-        threshold_factor=4.0,
+        threshold_factor=5.0,
         skip_bg_sub=False,
         verbose=True
     )
@@ -100,7 +101,7 @@ def run_tracker(csv_path: str, verbose: bool = True):
             print_tomht_stats(raw_df, tracked_df)
             print("[*] Generating visualization artifacts...")
         
-        plot_longest_tracks(raw_df, tracked_df, os.path.join(output_dir, "tomht_static.png"))
+        plot_longest_tracks(raw_df, tracked_df, os.path.join(output_dir, "tomht_longest_tracks.png"))
         animate_tracks(raw_df, tracked_df, os.path.join(output_dir, "tomht_animation.gif"))
         
         if verbose: print(f"[✓] Tracker visualizations saved to: {output_dir}")
@@ -110,7 +111,7 @@ def run_tracker(csv_path: str, verbose: bool = True):
 
 if __name__ == "__main__":
     # --- PIPELINE CONFIGURATION ---
-    TARGET_TRAJECTORY_CSV = r"data\cso_data\Crossing.csv"
+    TARGET_TRAJECTORY_CSV = r"data\cso_data\Slowing_one.csv" ## <-- UPDATE WITH TRAJECTORY CSV PATH
     DETECTIONS_CSV_OUTPUT = "results/detections/master_detections_with_covariance.csv"
 
     # Ensure the master results directory exists

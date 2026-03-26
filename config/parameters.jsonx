@@ -21,7 +21,7 @@
 
     // --- Track Management (Lifespan) ---
     "track_management": {
-        "max_misses": 5,              // Consecutive misses before track death
+        "max_misses": 50,              // Consecutive misses before track death
         "min_hits_confirm": 2,        // Age required to be considered a "confirmed" track
         "min_age_to_check": 5,        // Frames to wait before testing for stationary tracks
         "min_distance_px": 1.0        // Minimum pixels moved from start to avoid pruning
@@ -29,8 +29,10 @@
 
     // --- Multi-Hypothesis Tracking (MHT) ---
     "hypothesis": {
-        "max_hypotheses": 5,          // Max branching limit per track
+        "max_hypotheses": 50,          // Max branching limit per track
         "n_scan_window": 5,           // Depth of history for N-Scan pruning
-        "miss_log_likelihood": -25.0  // Penalty score for the null hypothesis
+        "miss_log_likelihood": -8.0  // Penalty score for the null hypothesis
     }
+
+
 }

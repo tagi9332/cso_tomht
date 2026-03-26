@@ -1,66 +1,39 @@
-*******************************************************************************
-* CLOSELY-SPACED OBJECT (CSO) TOMHT PIPELINE                           *
-* Simulation | Detection | Multi-Hypothesis Tracking               *
-*******************************************************************************
+# Closely-Spaced Object (CSO) TOMHT Pipeline
+**Simulation | Detection | Multi-Hypothesis Tracking**
 
-===============================================================================
-1. OVERVIEW
-===============================================================================
-An end-to-end modular pipeline designed to simulate astronomical image data,
-extract dim source centroids, and maintain target identities using a
-Track-Oriented Multiple Hypothesis Tracker (TOMHT).
+## Overview
+The CSO TOMHT Pipeline is an end-to-end modular framework designed to simulate astronomical image data, extract dim source centroids, and maintain target identities using a Track-Oriented Multiple Hypothesis Tracker (TOMHT). 
 
-The pipeline consists of three primary stages:
-  [SIMULATION] -> [DETECTION] -> [TRACKING]
+## Pipeline Architecture
+The workflow is fully automated and consists of three primary stages:
 
-===============================================================================
-2. INSTALLATION & REQUIREMENTS
-===============================================================================
-Tested on Python 3.12+. Required packages:
-  > pip install -r requirements.txt
+### 1. Simulation
+Converts trajectories into synthetic `.fits` frames.
+* Applies an Airy disk Point Spread Function (PSF) assumption.
+* Injects realistic Poisson photon noise and Gaussian read noise.
 
-===============================================================================
-3. USAGE
-===============================================================================
-The entire workflow is automated via main.py.
+### 2. Detection
+Extracts (x, y) centroids from noisy imagery.
+* **Levesque Background Subtraction:** Removes non-uniform background offsets.
+* **Matched Filter:** Convolves the image with a Gaussian kernel to boost the Signal-to-Noise Ratio (SNR).
+* **DBSCAN Clustering:** Groups local maxima into discrete, trackable detections.
 
-  1. Set your input file in main.py:
-     TARGET_TRAJECTORY_CSV = "data/cso_data/traj_file.csv"
+### 3. Tracking (TOMHT)
+Associates detections across time while natively resolving target identity ambiguities during crossovers.
+* **Gating:** Utilizes KD-Trees for highly efficient nearest-neighbor association.
+* **N-Scan Pruning:** Manages the hypothesis tree memory window to prevent combinatorial explosions.
+* **Kalman Filtering:** Estimates and predicts position and velocity states for all tracks.
 
-  2. Execute the script:
-     python main.py
+## Key Outputs
+Upon completion, the pipeline generates the following artifacts in the `/results` directory:
 
-===============================================================================
-4. PIPELINE STAGES
-===============================================================================
+* `master_detections.csv`: Full list of all centroids found across all frames.
+* `detections_animation.gif`: Visual confirmation of raw pipeline detections.
+* `tomht_animation.gif`: Final tracked paths overlaid with track IDs and velocities.
+* `tomht_static.png`: Plot summarizing the longest continuous tracks found.
 
-[STAGE 1: SIMULATION]
-  Converts trajectories into .fits frames.
-  - Applies Airy disk PSF assumption.
-  - Injects Poisson photon noise and Gaussian read noise.
+## Getting Started
 
-[STAGE 2: DETECTION]
-  Extracts (x, y) centroids from noisy imagery.
-  - Levesque Background Subtraction: Removes non-uniform offsets.
-  - Matched Filter: Convolves image with a Gaussian kernel to boost SNR.
-  - DBSCAN Clustering: Groups local maxima into discrete detections.
-
-[STAGE 3: TRACKING (TOMHT)]
-  Associates detections across time while resolving identity ambiguities.
-  - Gating: Uses KD-Trees for O(log n) nearest-neighbor association.
-  - N-Scan Pruning: Efficiently manages the hypothesis tree window.
-  - Kalman Filtering: Estimates position and velocity states.
-
-===============================================================================
-5. KEY OUTPUTS (Found in /results)
-===============================================================================
-  FILE                          DESCRIPTION
-  ---------------------------------------------------------------------------
-  master_detections.csv         Full list of all centroids found in frames.
-  detections_animation.gif      Visual confirmation of raw detections.
-  tomht_animation.gif           Final tracked paths with IDs & velocities.
-  tomht_static.png              Summary of the longest tracks found.
-
-*******************************************************************************
-* END OF DOCUMENT                                    *
-*******************************************************************************
+1. Ensure you are running **Python 3.12+**. Install the required dependencies using:
+   ```bash
+   pip install -r requirements.txt

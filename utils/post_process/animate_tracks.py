@@ -1,8 +1,10 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from IPython.display import HTML
 
-def animate_tracks(meas_df: pd.DataFrame, tracked_df: pd.DataFrame, output_path: str):
+
+def animate_tracks(meas_df: pd.DataFrame, tracked_df: pd.DataFrame, output_path: str, display_plots: bool = False):
     """Creates a GIF showing raw detections per frame and active tracks."""
     fig, ax = plt.subplots(figsize=(10, 8))
     
@@ -61,5 +63,11 @@ def animate_tracks(meas_df: pd.DataFrame, tracked_df: pd.DataFrame, output_path:
     )
     
     ani.save(output_path, writer='pillow')
+    
+    # Optionally display the animation in a Jupyter notebook
+    if display_plots:
+        return HTML(ani.to_jshtml())
+
+
     plt.close()
     print(f"Saved animation to {output_path}")

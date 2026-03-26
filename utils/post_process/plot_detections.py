@@ -2,7 +2,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-def plot_background_diagnostics(img_raw, background_est, img_clean, output_dir, base_name):
+def plot_background_diagnostics(img_raw, background_est, img_clean, output_dir, base_name, display_plots=False):
     """Saves a 3-panel plot comparing raw, background, and cleaned images."""
     os.makedirs(output_dir, exist_ok=True)
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
@@ -20,9 +20,11 @@ def plot_background_diagnostics(img_raw, background_est, img_clean, output_dir, 
     
     save_path = os.path.join(output_dir, f"{base_name}_bg_diag.png")
     plt.savefig(save_path, dpi=150)
+    if display_plots:
+        plt.show()
     plt.close(fig)
 
-def plot_detections(img_raw, detections, sigma_psf, output_dir, base_name, filename):
+def plot_detections(img_raw, detections, sigma_psf, output_dir, base_name, filename, display_plots=False):
     """Overlays detection circles and SNR text on the raw image."""
     fig, ax = plt.subplots(figsize=(8, 8))
     
@@ -42,6 +44,8 @@ def plot_detections(img_raw, detections, sigma_psf, output_dir, base_name, filen
     save_path = os.path.join(output_dir, f"{base_name}_detections.png")
     plt.tight_layout()
     plt.savefig(save_path, dpi=150, bbox_inches='tight')
+    if display_plots:
+        plt.show()
     plt.close(fig) 
     
     return save_path

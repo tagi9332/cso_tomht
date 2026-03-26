@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def plot_longest_tracks(meas_df: pd.DataFrame, tracked_df: pd.DataFrame, output_path: str):
+def plot_longest_tracks(meas_df: pd.DataFrame, tracked_df: pd.DataFrame, output_path: str, display_plots: bool = False):
     """Plots all raw detections and overlays the top 5 longest tracker continuous paths."""
     plt.figure(figsize=(12, 8))
     
@@ -30,5 +30,7 @@ def plot_longest_tracks(meas_df: pd.DataFrame, tracked_df: pd.DataFrame, output_
     plt.grid(True, linestyle='--', alpha=0.6)
     plt.tight_layout()
     plt.savefig(output_path, dpi=150)
+    if display_plots:
+        plt.show()
     plt.close()
     print(f"Saved track plot to {output_path}")

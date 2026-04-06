@@ -1,10 +1,24 @@
 {
     // ==========================================
+    // OPTICAL SIMULATION CONFIGURATION
+    // ==========================================
+    "optical_sensor": {
+        "f_len": 4.0,
+        "D": 0.5,
+        "wavelength": 500e-9,
+        "pixel_pitch": 1.5e-6,
+        "read_noise_std": 10.0,
+        "background_mean": 100.0,
+        "img_size": 1024,
+        "snr_targets": [1,2,5,10,20,30,40,50]
+    },
+
+    // ==========================================
     // TOMHT TRACKER CONFIGURATION
     // ==========================================
 
     // --- Global Time ---
-    "dt": 1.0,
+    "dt": 10.0,
 
     // --- Kalman Filter (State Estimation) ---
     "kalman_filter": {
@@ -31,8 +45,6 @@
     "hypothesis": {
         "max_hypotheses": 5,          // Max branching limit per track
         "n_scan_window": 5,           // Depth of history for N-Scan pruning
-        "miss_log_likelihood": -8.0  // Penalty score for the null hypothesis
+        "miss_log_likelihood": -8.0   // Penalty score for the null hypothesis
     }
-
-
 }

@@ -18,18 +18,18 @@
     // ==========================================
 
     // --- Global Time ---
-    "dt": 10.0,
+    "dt": 1.0,
 
     // --- Kalman Filter (State Estimation) ---
     "kalman_filter": {
         "process_noise_std": 1,
-        "measurement_noise_std": 3.0,
+        "measurement_noise_std": 2,
         "mahalanobis_threshold": 4.0  // Distance to capture ~99% of 2D Gaussian
     },
 
     // --- Association & Clustering (KD-Tree) ---
     "association": {
-        "gate_distance": 10.0,        // Max Euclidean pixel distance for initial clustering
+        "gate_distance": 5.0,        // Max Euclidean pixel distance for initial clustering
         "merge_clusters": true
     },
 
@@ -37,14 +37,14 @@
     "track_management": {
         "max_misses": 5,              // Consecutive misses before track death
         "min_hits_confirm": 2,        // Age required to be considered a "confirmed" track
-        "min_age_to_check": 5,        // Frames to wait before testing for stationary tracks
-        "min_distance_px": 1.0        // Minimum pixels moved from start to avoid pruning
+        "min_age_to_check": 3,        // Frames to wait before testing for stationary tracks
+        "min_distance_px": 1.5        // Minimum pixels moved from start to avoid pruning
     },
 
     // --- Multi-Hypothesis Tracking (MHT) ---
     "hypothesis": {
         "max_hypotheses": 5,          // Max branching limit per track
-        "n_scan_window": 5,           // Depth of history for N-Scan pruning
-        "miss_log_likelihood": -8.0   // Penalty score for the null hypothesis
+        "n_scan_window": 15,           // Depth of history for N-Scan pruning
+        "miss_log_likelihood": -15.0   // Penalty score for the null hypothesis
     }
 }

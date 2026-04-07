@@ -9,8 +9,8 @@
         "pixel_pitch": 1.5e-6,
         "read_noise_std": 10.0,
         "background_mean": 100.0,
-        "img_size": 1024,
-        "snr_targets": [1,2,5,10,20,30,40,50]
+        "img_size": 512,
+        "snr_targets": [10]
     },
 
     // ==========================================

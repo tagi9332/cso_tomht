@@ -8,7 +8,6 @@ def _load_jsonx(filepath: str) -> Dict[str, Any]:
     with open(filepath, 'r') as f:
         raw_text = f.read()
     
-    # Use regex to strip out single-line comments (// ...)
     clean_text = re.sub(r'//.*', '', raw_text)
     
     return json.loads(clean_text)

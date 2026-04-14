@@ -52,7 +52,7 @@ def plot_summary_frame(
 
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, "simulation_final_frame.png"), dpi=100)
-    plt.close(fig) # Always close plots in utilities to free memory
+    plt.close(fig)
 
 
 def create_simulation_gif(

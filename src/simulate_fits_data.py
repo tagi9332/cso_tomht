@@ -30,11 +30,10 @@ def simulate_fits_data(trajectory_csv: str, config: dict, verbose: bool = False)
     target_col = 'Object_ID' if 'Object_ID' in trajectory_df.columns else 'id' if 'id' in trajectory_df.columns else None
     num_targets = trajectory_df[target_col].nunique() if target_col else 1
 
-    # Sample SNRs from a Gaussian distribution to span roughly 3 to 30
-    # Mean = 16.5, Std Dev = 4.5 (bounds +/- 3 sigma are 3 and 30)
-    mu, sigma = 16.5, 4.5
+    # Sample SNRs from a Gaussian distribution
+    mu, sigma = 10, 5
     sampled_snrs = np.random.normal(mu, sigma, num_targets)
-    sampled_snrs = np.clip(sampled_snrs, 3.0, 10.0) # Enforce strict bounds
+    sampled_snrs = np.clip(sampled_snrs, 3.0, 10.0)
     
     # Configuration
     sim_config = {
@@ -45,8 +44,8 @@ def simulate_fits_data(trajectory_csv: str, config: dict, verbose: bool = False)
         'read_noise_std': config['optical_sensor']['read_noise_std'],
         'background_mean': config['optical_sensor']['background_mean'],
         'img_size': config['optical_sensor']['img_size'],
-        'snr_targets': sampled_snrs.tolist(),  # Inject the Gaussian-sampled SNRs
-        'dt': config.get('dt', 1.0)  # Default to 1 second if not specified
+        'snr_targets': sampled_snrs.tolist(),
+        'dt': config.get('dt', 1.0)
     }
 
     output_dir = "results/simulated_data"
@@ -55,23 +54,20 @@ def simulate_fits_data(trajectory_csv: str, config: dict, verbose: bool = False)
     vmin_limit = sim_config['background_mean'] - 3 * sim_config['read_noise_std']
     vmax_limit = sim_config['background_mean'] + 500
 
-    # --- DOWNSAMPLING LOGIC ---
     dt = int(sim_config['dt'])
     if verbose:
         print(f"[*] Downsampling trajectory to a {dt}-second image capture rate...")
         
-    # Attempt to filter based on a time column, otherwise fall back to row slicing
+    # Attempt to identify the time column and filter accordingly
     if 'time' in trajectory_df.columns:
         trajectory_df = trajectory_df[trajectory_df['time'] % dt == 0].copy()
     elif 't' in trajectory_df.columns:
         trajectory_df = trajectory_df[trajectory_df['t'] % dt == 0].copy()
     else:
-        # Fallback: Assumes the CSV is purely 1-second intervals per row
         trajectory_df = trajectory_df.iloc[::dt].copy()
         
-    # Reset index after filtering to ensure clean iteration later
+    # Reset index
     trajectory_df.reset_index(drop=True, inplace=True)
-    # --------------------------
 
     if verbose:
         print(f"[*] Running simulation logic on {len(trajectory_df)} frames...")

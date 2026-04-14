@@ -7,16 +7,12 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.append(PROJECT_ROOT)
 
-# ---------------------------------------------------------
-# IMPORT YOUR LOCAL MODULES HERE
-# ---------------------------------------------------------
+# Local imports from the project
 from src.track import Track, Hypothesis
 from utils.config_loader import TrackerConfig
 from utils.kalman_filter import KalmanFilter2D
 from src.tomht import TOMHTTracker 
 from src.tomht import TOMHTTracker
- 
-# Assuming your plotting functions are saved in a visualization module:
 from utils.post_process import print_tomht_stats, plot_longest_tracks, animate_tracks 
 
 
@@ -100,11 +96,10 @@ def run_tracker(csv_path: str, generate_gif: bool = False, verbose: bool = True)
 # MAIN EXECUTION BLOCK
 # =====================================================================
 if __name__ == "__main__":
-    # Define the explicit path to your dataset
+    # Path to detection file
     DETECTIONS_CSV_OUTPUT = os.path.join("results", "pipeline_output", "master_detections_with_covariance.csv")
     
-    # Execute Step 3
-    # Note: Set generate_gif=True if you want the animation built at the end
+    # Execute the tracker and get the tracked DataFrame
     tracked_dataframe = run_tracker(
         csv_path=DETECTIONS_CSV_OUTPUT, 
         generate_gif=False, 

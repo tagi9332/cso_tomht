@@ -8,28 +8,8 @@ from utils.config_loader import TrackerConfig
 
 class TOMHTTracker:
     """
-    Track-Oriented Multiple Hypothesis Tracker (TOMHT).
-
-    This tracker maintains multiple parallel association hypotheses for each 
-    active track to handle measurement ambiguity (clutter, missed detections). 
-    It relies on a Kalman Filter for state estimation, KD-Tree for spatial 
-    clustering, and N-Scan pruning to manage exponential branch growth.
-
-    Parameters
-    ----------
-    dt : float, optional
-        Time step between consecutive frames, by default 1.0.
-    gate_distance : float, optional
-        Maximum spatial distance for initial measurement clustering and gating.
-    max_misses : int, optional
-        Maximum number of consecutive missed detections before a track is 
-        considered dead and pruned.
-    max_hypotheses : int, optional
-        The maximum number of distinct hypothesis branches to maintain per 
-        track.
-    n_scan_window : int, optional
-        The depth of the history window used for N-Scan pruning. Competing 
-        hypotheses are forced to collapse to the ancestor from `N` frames ago.
+    Implements the Track-Oriented Multi-Hypothesis Tracking (TOMHT) algorithm.
+    This class manages multiple tracks, each with its own set of hypotheses, and performs prediction, association, hypothesis generation, and pruning steps.
     """
     def __init__(self, config: TrackerConfig):
         self.config = config

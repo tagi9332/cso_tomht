@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from IPython.display import HTML
@@ -18,7 +19,7 @@ def animate_tracks(meas_df: pd.DataFrame, tracked_df: pd.DataFrame, output_path:
     ax.set_ylabel("Y Position")
     
     time_steps = sorted(meas_df['time'].unique())
-    colors = plt.cm.tab20.colors 
+    colors = plt.cm.tab20.colors
     
     # Persistent objects
     raw_scatter = ax.scatter([], [], c='gray', s=20, alpha=0.5, label='Current Detections')
@@ -27,14 +28,14 @@ def animate_tracks(meas_df: pd.DataFrame, tracked_df: pd.DataFrame, output_path:
     def update(frame_time):
         ax.set_title(f"TOMHT Tracking - Frame {frame_time}")
         
-        # 1. Update raw detections for this specific frame
+        # Update raw detections for this specific frame
         current_meas = meas_df[meas_df['time'] == frame_time]
         if not current_meas.empty:
             raw_scatter.set_offsets(current_meas[['x', 'y']].to_numpy())
         else:
             raw_scatter.set_offsets(np.empty((0, 2)))
             
-        # 2. Update track histories up to this frame
+        # Update track histories up to this frame
         current_tracks = tracked_df[tracked_df['time'] <= frame_time]
         active_ids_this_frame = tracked_df[tracked_df['time'] == frame_time]['id'].unique()
         
@@ -64,7 +65,7 @@ def animate_tracks(meas_df: pd.DataFrame, tracked_df: pd.DataFrame, output_path:
     
     ani.save(output_path, writer='pillow')
     
-    # Optionally display the animation in a Jupyter notebook
+    # Optionally display the animation in the Jupyter notebook
     if display_plots:
         return HTML(ani.to_jshtml())
 

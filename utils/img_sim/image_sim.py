@@ -34,14 +34,13 @@ def add_gaussian_source(image, x, y, flux, sigma, roi_sigma_mult=5):
 
 def apply_noise(clean_image, read_noise_std):
     """
-    Applies Shot noise (Poisson) and Read noise (Gaussian).
+    Applies Shot noise and Read noise.
     """
-    # Poisson (Shot) Noise - requires non-negative input
-    # Clip negative values just in case floats drifted below 0
+    # Shot Noise
     clean_image = np.maximum(clean_image, 0)
     image_with_shot = np.random.poisson(clean_image)
     
-    # Gaussian (Read) Noise
+    # Read Noise
     read_noise = np.random.normal(0, read_noise_std, clean_image.shape)
     
     return image_with_shot + read_noise
@@ -74,7 +73,6 @@ def run_simulation(config, trajectory_df, output_dir=None):
     id_to_snr = {}
     
     for i, obj_id in enumerate(unique_ids):
-        # Assign SNR from config list (loop back if there are more objects than SNRs)
         snr = config['snr_targets'][i % len(config['snr_targets'])]
         flux = calculate_flux_for_snr(snr, n_pix_window, config['background_mean'], config['read_noise_std'])
         id_to_flux[obj_id] = flux

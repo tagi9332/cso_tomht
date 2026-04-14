@@ -19,11 +19,10 @@ def trajectories_to_pixel_space(trajectory_files: dict, config: dict, earth_radi
         pd.DataFrame: Formatted dataframe with columns ['time', 'id', 'x', 'y']
     """
     
-    # Extract the optical sensor configuration (with a fallback if the sub-dict is passed directly)
+    # Extract the optical sensor configuration
     sensor_config = config.get('optical_sensor', config)
     
     # Calculate the Instantaneous Field of View (IFoV) in radians per pixel
-    # IFoV = pixel size / focal length
     ifov = sensor_config['pixel_pitch'] / sensor_config['f_len']
     
     # Center coordinate of the sensor
@@ -36,16 +35,13 @@ def trajectories_to_pixel_space(trajectory_files: dict, config: dict, earth_radi
         # Read the trajectory data
         df = pd.read_csv(filepath)
         
-        # Calculate the magnitude of the inertial position vector (Earth center to Chief/Deputy)
-        # Assuming r_x_km, r_y_km, r_z_km are in the ECI frame
+        # Calculate the magnitude of the inertial position vector
         r_mag_km = np.sqrt(df['r_x_km']**2 + df['r_y_km']**2 + df['r_z_km']**2)
         
         # Calculate distance from the observer (Earth surface) to the target
         distance_to_target_km = r_mag_km - earth_radius_km
         
-        # Calculate the angular offset in radians using small angle approximation (theta ~ rho/D)
-        # rho_y_km (In-track) maps to the horizontal axis of the sensor
-        # rho_z_km (Cross-track) maps to the vertical axis of the sensor
+        # Calculate the angular offset in radians using small angle approximation
         theta_y = df['rho_y_km'] / distance_to_target_km
         theta_z = df['rho_z_km'] / distance_to_target_km
         

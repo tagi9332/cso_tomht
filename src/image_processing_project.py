@@ -8,7 +8,7 @@ from astropy.io import fits
 from sklearn.cluster import DBSCAN
 import astroalign as aa
 
-# --- 1. CALIBRATION FRAMES ---
+# --- CALIBRATION FRAMES ---
 def create_master_frames(bias_dir, dark_dir, plot_out_dir):
     master_bias, master_dark = None, None
     os.makedirs(plot_out_dir, exist_ok=True)
@@ -55,7 +55,7 @@ def create_master_frames(bias_dir, dark_dir, plot_out_dir):
         
     return master_bias, master_dark
 
-# --- 2. LEVESQUE BACKGROUND SUBTRACTION ---
+# --- LEVESQUE BACKGROUND SUBTRACTION ---
 def levesque_process(image, sigma_psf=1.5, k=3, iterations=3):
     img_float = image.astype(np.float32)
     rows, cols = img_float.shape
@@ -91,7 +91,7 @@ def levesque_process(image, sigma_psf=1.5, k=3, iterations=3):
         
     return img_float - background, background
 
-# --- 3. MAIN PIPELINE ---
+# --- MAIN PIPELINE ---
 def process_fits_directory(input_dir, output_csv_dir, bias_dir, dark_dir, plot_out_dir, sigma_psf=2.0, threshold_factor=10.0, skip_bg_sub=False):
     os.makedirs(output_csv_dir, exist_ok=True)
     
@@ -104,8 +104,6 @@ def process_fits_directory(input_dir, output_csv_dir, bias_dir, dark_dir, plot_o
     master_bias, master_dark = create_master_frames(bias_dir, dark_dir, plot_out_dir)
 
     all_detections = []
-    
-    # We need a variable to store the previous frame for subtraction
     prev_aligned = None
     
     mode_text = "SKIPPING" if skip_bg_sub else "USING"
@@ -114,14 +112,14 @@ def process_fits_directory(input_dir, output_csv_dir, bias_dir, dark_dir, plot_o
     for frame_idx, filepath in enumerate(fits_files):
         filename = os.path.basename(filepath)
         
-        # 1. Load FITS
+        # Load FITS
         try:
             img_raw = fits.getdata(filepath).astype(np.float32)
         except Exception as e:
             print(f"Error reading {filename}: {e}")
             continue
             
-        # 1.5 Apply Sensor Calibration
+        # Apply Sensor Calibration
         img_calibrated = img_raw.copy()
         if master_bias is not None:
             img_calibrated -= master_bias
@@ -130,13 +128,13 @@ def process_fits_directory(input_dir, output_csv_dir, bias_dir, dark_dir, plot_o
             
         img_calibrated = np.clip(img_calibrated, a_min=0, a_max=None)
 
-        # 2. Background Subtraction
+        # Background Subtraction
         if skip_bg_sub:
             img_clean = img_calibrated  
         else:
             img_clean, background_est = levesque_process(img_calibrated, sigma_psf=sigma_psf)
             
-            # --- NEW: Plot and save the first Levesque execution ---
+            # --- Plot and save the first Levesque execution ---
             if frame_idx == 0:
                 # Calculate standard deviations for the titles
                 sigma_orig = np.std(img_calibrated)
@@ -145,13 +143,13 @@ def process_fits_directory(input_dir, output_csv_dir, bias_dir, dark_dir, plot_o
                 
                 fig, axes = plt.subplots(1, 3, figsize=(20, 6))
                 
-                # Original Calibrated Image (Percentile scaled)
+                # Original Calibrated Image
                 vmin_orig, vmax_orig = np.percentile(img_calibrated, 1), np.percentile(img_calibrated, 99.5)
                 im0 = axes[0].imshow(img_calibrated, cmap='gray', origin='lower', vmin=vmin_orig, vmax=vmax_orig)
                 axes[0].set_title(f"Original (Calibrated)\n$\sigma$ = {sigma_orig:.2f} ADU")
                 fig.colorbar(im0, ax=axes[0], fraction=0.046, pad=0.04, label='ADU')
                 
-                # Background Estimate (Using viridis to highlight structural gradients)
+                # Background Estimate
                 vmin_bg, vmax_bg = np.percentile(background_est, 1), np.percentile(background_est, 99.5)
                 im1 = axes[1].imshow(background_est, cmap='viridis', origin='lower', vmin=vmin_bg, vmax=vmax_bg)
                 axes[1].set_title(f"Levesque Background Est.\n$\sigma$ = {sigma_bg:.2f} ADU")
@@ -169,7 +167,7 @@ def process_fits_directory(input_dir, output_csv_dir, bias_dir, dark_dir, plot_o
                 plt.close()
                 print(f"[*] Saved Levesque background subtraction example to: {bg_plot_path}")
 
-        # 3. FIELD ROTATION CORRECTION (Astroalign)
+        # FIELD ROTATION CORRECTION (Astroalign)
         if frame_idx == 0:
             reference_frame = img_clean.copy()
             img_aligned = img_clean
@@ -181,7 +179,7 @@ def process_fits_directory(input_dir, output_csv_dir, bias_dir, dark_dir, plot_o
                 print(f"[!] Astroalign couldn't match stars for {filename}, skipping rotation.")
                 img_aligned = img_clean 
                 
-        # --- 4. IMAGE DIFFERENCING ---
+        # --- IMAGE DIFFERENCING ---
         if prev_aligned is None:
             prev_aligned = img_aligned.copy()
             print(f"Processed frame {frame_idx + 1} / {len(fits_files)} (Stored as diff reference)")
@@ -192,7 +190,7 @@ def process_fits_directory(input_dir, output_csv_dir, bias_dir, dark_dir, plot_o
         diff_positive = np.clip(diff_img, a_min=0, a_max=None)
         score_map = cv2.GaussianBlur(diff_positive, (5, 5), sigmaX=1.5)
         
-        # 5. Robust Thresholding
+        # Robust Thresholding
         median_score = np.median(score_map)
         robust_sigma = 1.4826 * np.median(np.abs(score_map - median_score))
         if robust_sigma == 0: robust_sigma = 1e-6 
@@ -200,7 +198,7 @@ def process_fits_directory(input_dir, output_csv_dir, bias_dir, dark_dir, plot_o
         threshold = threshold_factor * robust_sigma
         bright_indices = np.argwhere(score_map > threshold)
         
-        # 6. Clustering & Centroiding
+        # Clustering & Centroiding
         if len(bright_indices) > 0:
             clustering = DBSCAN(eps=5.0, min_samples=3).fit(bright_indices)
             labels = clustering.labels_
@@ -240,7 +238,7 @@ def process_fits_directory(input_dir, output_csv_dir, bias_dir, dark_dir, plot_o
         if (frame_idx + 1) % 10 == 0:
             print(f"Processed frame {frame_idx + 1} / {len(fits_files)}")
 
-    # --- 6. EXPORT TO CSV ---
+    # --- EXPORT TO CSV ---
     if all_detections:
         df = pd.DataFrame(all_detections)
         csv_path = os.path.join(output_csv_dir, "master_detections_with_covariance.csv")

@@ -72,20 +72,21 @@ class EKFTrackerConfig:
     # ==========================================
     focal_length: float = 4.0
     camera_offset_x: float = 0.0
-    uv_noise_std: float = 7.5e-7  
+    uv_noise_std: float = 7.5e-5
+    pixel_pitch: float = 1.5e-6  
     
     # ==========================================
     # Orbital & Physics Parameters
     # ==========================================
     mean_motion: float = 7.292115e-5  
-    dt: float = 60.0                   
+    dt: float = 3600.0                   
     range_noise_std: float = 5.0      
     
     # ==========================================
     # Kalman Filter Tuning
     # ==========================================
-    kf_process_noise: float = 1e-7    
-    mahalanobis_thresh: float = 50  # Default 95% confidence for 4-DOF
+    kf_process_noise: float = 1e-2    
+    mahalanobis_thresh: float = 5  # Default 95% confidence for 4-DOF
     
     # ==========================================
     # Association
@@ -96,10 +97,10 @@ class EKFTrackerConfig:
     # ==========================================
     # Track Management
     # ==========================================
-    max_misses: int = 5
+    max_misses: int = 500
     min_hits_confirm: int = 3
     min_age_to_check: int = 3
-    min_distance_px: float = 0      
+    min_distance_px: float = 1      
     
     # ==========================================
     # Hypothesis Management
@@ -133,6 +134,8 @@ class EKFTrackerConfig:
             uv_noise_std=data.get('uv_noise_std', cls.uv_noise_std),
             
             # Kalman Filter
+            # ---> ADDED: kf_process_noise loading <---
+            kf_process_noise=kf_data.get('process_noise_std', cls.kf_process_noise),
             mahalanobis_thresh=kf_data.get('mahalanobis_threshold', cls.mahalanobis_thresh),
             
             # Association
@@ -148,5 +151,7 @@ class EKFTrackerConfig:
             # Hypothesis
             max_hypotheses=hyp_data.get('max_hypotheses', cls.max_hypotheses),
             n_scan_window=hyp_data.get('n_scan_window', cls.n_scan_window),
-            miss_log_likelihood=hyp_data.get('miss_log_likelihood', cls.miss_log_likelihood)
+            miss_log_likelihood=hyp_data.get('miss_log_likelihood', cls.miss_log_likelihood),
+            pixel_pitch=data.get('pixel_pitch', cls.pixel_pitch)
+
         )

@@ -1,6 +1,7 @@
-from utils.post_process.plot_longest_tracks import plot_longest_tracks
+from utils.post_process.plot_longest_tracks import plot_longest_tracks, plot_longest_tracks_cwh
 from utils.post_process.animate_tracks import animate_tracks
 from utils.post_process.print_tomht_stats import print_tomht_stats
 from utils.post_process.compute_track_metrics import compute_mota, compute_motp
 from utils.post_process.plot_frame_grid import plot_frame_grid
 from utils.post_process.compute_ttft import compute_ttft
+from utils.post_process.plot_cov_ric import plot_covariance_evolution_ric

@@ -18,7 +18,7 @@
     // ==========================================
 
     // --- Global Time ---
-    "dt": 1.0,
+    "dt": 3600.0,
 
     // --- Kalman Filter (State Estimation) ---
     "kalman_filter": {
@@ -29,13 +29,13 @@
 
     // --- Association & Clustering (KD-Tree) ---
     "association": {
-        "gate_distance": 20.0,
+        "gate_distance": 100.0,
         "merge_clusters": true
     },
 
     // --- Track Management (Lifespan) ---
     "track_management": {
-        "max_misses": 5, 
+        "max_misses": 20, 
         "min_hits_confirm": 2,
         "min_age_to_check": 3,
         "min_distance_px": 1.5

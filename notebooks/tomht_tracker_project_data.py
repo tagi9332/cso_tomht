@@ -81,7 +81,7 @@ def run_tracker(csv_path: str, generate_gif: bool = False, verbose: bool = True)
             print_tomht_stats(raw_df, tracked_df)
             print("[*] Generating visualization artifacts...")
         
-        plot_longest_tracks(raw_df, tracked_df, os.path.join(output_dir, "tomht_longest_tracks.png"), display_plots=verbose)
+        plot_longest_tracks(raw_df, tracked_df, os.path.join(output_dir, "tomht_longest_tracks.png"), display_plots=verbose, n_tracks=1000)
         
         if generate_gif:
             animate_tracks(raw_df, tracked_df, os.path.join(output_dir, "tomht_animation.gif"))

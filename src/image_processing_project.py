@@ -6,7 +6,7 @@ import cv2
 import matplotlib.pyplot as plt
 from astropy.io import fits
 from sklearn.cluster import DBSCAN
-import astroalign as aa
+# import astroalign as aa
 
 # --- CALIBRATION FRAMES ---
 def create_master_frames(bias_dir, dark_dir, plot_out_dir):
@@ -95,7 +95,7 @@ def levesque_process(image, sigma_psf=1.5, k=3, iterations=3):
 def process_fits_directory(input_dir, output_csv_dir, bias_dir, dark_dir, plot_out_dir, sigma_psf=2.0, threshold_factor=10.0, skip_bg_sub=False):
     os.makedirs(output_csv_dir, exist_ok=True)
     
-    fits_files = sorted(glob.glob(os.path.join(input_dir, "*.fit")))[:50]
+    fits_files = sorted(glob.glob(os.path.join(input_dir, "*.fit")))[:]
     if not fits_files:
         print(f"No FITS files found in {input_dir}")
         return
@@ -262,7 +262,7 @@ if __name__ == "__main__":
         dark_dir=DARK_DIR,
         plot_out_dir=PLOT_OUT_DIR,
         sigma_psf=4.0, 
-        threshold_factor=20.0,
+        threshold_factor=100.0,
         skip_bg_sub=False
     )
     
